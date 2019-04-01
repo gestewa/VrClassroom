@@ -73,9 +73,18 @@ namespace DaydreamElements.Teleport {
     //[Tooltip("Transition to use when teleporting player")]
     public BaseTeleportTransition transition;
 
+    // Get Location User is pointing at
+    // [Tooltip("Controller used for getting location user is pointing at")]
+    public GvrBasePointer pointer;
+
     /// Rotate player when they click the side of the d-pad.
     //[Tooltip("Rotate the player when they click the side of the touchpad")]
     public bool allowRotation = true;
+
+    // Do not use the werid google math to determine where the player teleports
+    //   teleport based on the controller's recticle
+    //[Tooltip("Default the player's target teleport location to the reticle location")]
+    public bool teleportOnReticle = true;
 
     /// Speed to rotate at while trigger is active.
     //[Tooltip("Rotation speed while trigger is active")]
@@ -135,7 +144,14 @@ namespace DaydreamElements.Teleport {
       if (transition == null) {
         transition = GetComponent<BaseTeleportTransition>();
       }
-    }
+      if (pointer == null) {
+        pointer = GetComponent<GvrBasePointer>();
+      }
+     if (IsConfigured() == false)
+     {
+        return;
+     }
+   }
 
     void OnDisable() {
       if (!selectionIsActive) {
@@ -187,6 +203,9 @@ namespace DaydreamElements.Teleport {
       // Get the current selection result from the detector.
       float playerHeight = DetectPlayerHeight();
       selectionResult = detector.DetectSelection(currentController, playerHeight);
+      if (teleportOnReticle) {
+        selectionResult.selection = pointer.CurrentRaycastResult.worldPosition;
+      }
 
       // Update the visualization.
       visualizer.UpdateSelection(currentController, selectionResult);
